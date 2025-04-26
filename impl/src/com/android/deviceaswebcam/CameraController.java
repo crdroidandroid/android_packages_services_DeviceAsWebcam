@@ -44,6 +44,7 @@ import android.media.ImageWriter;
 import android.os.ConditionVariable;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemProperties;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Range;
@@ -683,7 +684,12 @@ public class CameraController {
                             + fps);
         }
         synchronized (mSerializationLock) {
-            long usage = HardwareBuffer.USAGE_CPU_READ_OFTEN | HardwareBuffer.USAGE_VIDEO_ENCODE;
+            boolean disableVideoEncodeFlag =
+                    SystemProperties.getBoolean("ro.usb.uvc.disable_video_encode_flag", false);
+            long usage = HardwareBuffer.USAGE_CPU_READ_OFTEN;
+            if (!disableVideoEncodeFlag) {
+                usage |= HardwareBuffer.USAGE_VIDEO_ENCODE;
+            }
             mStreamConfigs = new StreamConfigs(width, height, fps);
             synchronized (mImgReaderLock) {
                 if (mImgReader != null) {
